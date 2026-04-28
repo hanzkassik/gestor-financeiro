@@ -89,9 +89,7 @@ class AddCategoryController extends GetxController {
         final updatedCategory = categoryModel!.copyWith(
           name: nameController.text,
           description: descriptionController.text,
-          color: colorController.text.replaceAll('#', '').isEmpty
-              ? null
-              : colorController.text.replaceAll('#', ''),
+          color: colorController.text.replaceAll('#', ''),
         );
         await _categoryRepository.updateCategory(updatedCategory);
       }
