@@ -99,11 +99,11 @@ class ListFinancePage extends GetView<ListFinanceController> {
                       elevation: 2,
                       color: Theme.of(context).scaffoldBackgroundColor,
                       child: Scrollbar(
-                        controller: controller.scrollControllerHorizontal,
+                        controller: controller.dateHorizontalScrollController,
                         thumbVisibility: true,
                         thickness: 2,
                         child: SingleChildScrollView(
-                          controller: controller.scrollControllerHorizontal,
+                          controller: controller.dateHorizontalScrollController,
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.only(bottom: 6),
                           child: Row(
@@ -162,162 +162,228 @@ class ListFinancePage extends GetView<ListFinanceController> {
                 ],
               ),
               if (controller.calendarIsVisible.value)
-                Container(
-                  constraints: const BoxConstraints(
-                    maxWidth: 800,
-                    minWidth: 400,
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: semana
-                            .map(
-                              (dia) => Expanded(
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 6,
+                Expanded(
+                  child: Scrollbar(
+                    controller: controller.calendarVerticalScrollController,
+                    child: SingleChildScrollView(
+                      controller: controller.calendarVerticalScrollController,
+                      child: Column(
+                        children: [
+                          Scrollbar(
+                            controller:
+                                controller.calendarHorizontalScrollController,
+                            child: SingleChildScrollView(
+                              controller:
+                                  controller.calendarHorizontalScrollController,
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    constraints: BoxConstraints(
+                                      maxWidth:
+                                          MediaQuery.of(context).size.width >
+                                              800
+                                          ? 800
+                                          : MediaQuery.of(context).size.width <
+                                                300
+                                          ? 300
+                                          : MediaQuery.of(context).size.width,
+                                      minWidth: 300,
+                                      minHeight: 200,
+                                      maxHeight: 700,
                                     ),
-                                    child: Text(
-                                      dia,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        color: Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall!.color,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                      ),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: dias.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 7,
-                              childAspectRatio: 1,
-                            ),
-                        itemBuilder: (context, index) {
-                          final dia = dias[index];
-
-                          if (dia == null) {
-                            return const SizedBox.shrink();
-                          }
-
-                          final dataDoDia = DateTime(
-                            data.year,
-                            data.month,
-                            dia,
-                          );
-
-                          final isHoje =
-                              DateTime.now().year == dataDoDia.year &&
-                              DateTime.now().month == dataDoDia.month &&
-                              DateTime.now().day == dataDoDia.day;
-
-                          return InkWell(
-                            onTap: () {},
-                            child: Container(
-                              margin: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: isHoje
-                                    ? Theme.of(context).cardColor
-                                    : Theme.of(context).scaffoldBackgroundColor,
-                                border: Border.all(color: Colors.grey.shade300),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      dia.toString(),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: SingleChildScrollView(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          children: itens
-                                              .where(
-                                                (element) =>
-                                                    element.date.day == dia,
-                                              )
-                                              .map((e) {
-                                                return Container(
-                                                  margin: const EdgeInsets.only(
-                                                    top: 2,
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      Expanded(
-                                                        child: Container(
-                                                          padding:
-                                                              const EdgeInsets.symmetric(
-                                                                horizontal: 4,
-                                                                vertical: 2,
+                                    padding: const EdgeInsets.all(8),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Row(
+                                                children: semana
+                                                    .map(
+                                                      (dia) => Expanded(
+                                                        child: Center(
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  vertical: 6,
+                                                                ),
+                                                            child: Text(
+                                                              dia,
+                                                              style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize: 12,
+                                                                color: Theme.of(context)
+                                                                    .textTheme
+                                                                    .titleSmall!
+                                                                    .color,
                                                               ),
-                                                          decoration: BoxDecoration(
-                                                            color:
-                                                                e
-                                                                        .category
-                                                                        ?.color !=
-                                                                    null
-                                                                ? colorFromHex(
-                                                                    e
-                                                                        .category!
-                                                                        .color!,
-                                                                  )
-                                                                : Theme.of(
-                                                                    context,
-                                                                  ).primaryColor,
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  4,
-                                                                ),
-                                                          ),
-                                                          child: Text(
-                                                            e.description ?? '',
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize: 10,
-                                                                  color: Colors
-                                                                      .grey,
-                                                                ),
+                                                            ),
                                                           ),
                                                         ),
                                                       ),
-                                                    ],
-                                                  ),
-                                                );
-                                              })
-                                              .toList(),
+                                                    )
+                                                    .toList(),
+                                              ),
+                                              GridView.builder(
+                                                shrinkWrap: true,
+                                                physics:
+                                                    const NeverScrollableScrollPhysics(),
+                                                itemCount: dias.length,
+                                                gridDelegate:
+                                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                                      crossAxisCount: 7,
+                                                      childAspectRatio: 1,
+                                                    ),
+                                                itemBuilder: (context, index) {
+                                                  final dia = dias[index];
+
+                                                  if (dia == null) {
+                                                    return const SizedBox.shrink();
+                                                  }
+
+                                                  final dataDoDia = DateTime(
+                                                    data.year,
+                                                    data.month,
+                                                    dia,
+                                                  );
+
+                                                  final isHoje =
+                                                      DateTime.now().year ==
+                                                          dataDoDia.year &&
+                                                      DateTime.now().month ==
+                                                          dataDoDia.month &&
+                                                      DateTime.now().day ==
+                                                          dataDoDia.day;
+
+                                                  return InkWell(
+                                                    onTap: () {},
+                                                    child: Container(
+                                                      margin:
+                                                          const EdgeInsets.all(
+                                                            4,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: isHoje
+                                                            ? Theme.of(
+                                                                context,
+                                                              ).cardColor
+                                                            : Theme.of(
+                                                                context,
+                                                              ).scaffoldBackgroundColor,
+                                                        border: Border.all(
+                                                          color: Colors
+                                                              .grey
+                                                              .shade300,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                      ),
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              4,
+                                                            ),
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              dia.toString(),
+                                                              style: const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
+                                                            ),
+                                                            Expanded(
+                                                              child: SingleChildScrollView(
+                                                                child: Column(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .end,
+                                                                  children: itens
+                                                                      .where(
+                                                                        (
+                                                                          element,
+                                                                        ) =>
+                                                                            element.date.day ==
+                                                                            dia,
+                                                                      )
+                                                                      .map((e) {
+                                                                        return Container(
+                                                                          margin: const EdgeInsets.only(
+                                                                            top:
+                                                                                2,
+                                                                          ),
+                                                                          child: Row(
+                                                                            children: [
+                                                                              Expanded(
+                                                                                child: Container(
+                                                                                  padding: const EdgeInsets.symmetric(
+                                                                                    horizontal: 4,
+                                                                                    vertical: 2,
+                                                                                  ),
+                                                                                  decoration: BoxDecoration(
+                                                                                    color:
+                                                                                        e.category?.color !=
+                                                                                            null
+                                                                                        ? colorFromHex(
+                                                                                            e.category!.color!,
+                                                                                          )
+                                                                                        : Theme.of(
+                                                                                            context,
+                                                                                          ).primaryColor,
+                                                                                    borderRadius: BorderRadius.circular(
+                                                                                      4,
+                                                                                    ),
+                                                                                  ),
+                                                                                  child: Text(
+                                                                                    e.description ??
+                                                                                        '',
+                                                                                    overflow: TextOverflow.ellipsis,
+                                                                                    style: const TextStyle(
+                                                                                      fontSize: 10,
+                                                                                      color: Colors.grey,
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        );
+                                                                      })
+                                                                      .toList(),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               if (!controller.calendarIsVisible.value)
@@ -325,10 +391,10 @@ class ListFinancePage extends GetView<ListFinanceController> {
                   child: RefreshIndicator(
                     onRefresh: controller.fetchData,
                     child: Scrollbar(
-                      controller: controller.scrollController,
+                      controller: controller.listTileScrollController,
                       thumbVisibility: true,
                       child: ListView.builder(
-                        controller: controller.scrollController,
+                        controller: controller.listTileScrollController,
                         itemCount: itens.length,
                         itemBuilder: (context, index) {
                           final finance = itens[index];

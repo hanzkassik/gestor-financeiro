@@ -7,10 +7,11 @@ import 'package:get/get.dart';
 class ListFinanceController extends GetxController {
   late final IFinanceRepository _financeRepository;
 
-  final ScrollController scrollController = ScrollController();
-  final ScrollController scrollControllerHorizontal = ScrollController();
-  final ScrollController scrollControllerHorizontalCalendar =
+  final ScrollController listTileScrollController = ScrollController();
+  final ScrollController dateHorizontalScrollController = ScrollController();
+  final ScrollController calendarHorizontalScrollController =
       ScrollController();
+  final ScrollController calendarVerticalScrollController = ScrollController();
   var finances = <FinanceModel>[].obs;
   var isLoading = false.obs;
   final calendarIsVisible = false.obs;
@@ -35,8 +36,8 @@ class ListFinanceController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    scrollControllerHorizontal.jumpTo(
-      scrollControllerHorizontal.position.maxScrollExtent / 2,
+    dateHorizontalScrollController.jumpTo(
+      dateHorizontalScrollController.position.maxScrollExtent / 2,
     );
   }
 
