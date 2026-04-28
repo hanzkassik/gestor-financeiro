@@ -7,4 +7,6 @@ abstract class IFinanceRepository {
   Future<FinanceModel> createFinance(CreateFinanceModel finance);
   Future<FinanceModel> updateFinance(FinanceModel finance);
   Future<void> deleteFinance(String id);
+  Future<void> importDatabase(List<FinanceModel> finances);
+  Future<List<FinanceModel>> exportDatabase();
 }

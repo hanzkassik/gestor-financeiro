@@ -30,4 +30,14 @@ class CategoryRepositoryImpl implements ICategoryRepository {
   Future<CategoryModel> updateCategory(CategoryModel category) async {
     return await _datasource.updateCategory(category);
   }
+
+  @override
+  Future<List<CategoryModel>> exportDatabase() async {
+    return await _datasource.exportDatabase();
+  }
+
+  @override
+  Future<void> importDatabase(List<CategoryModel> categories) async {
+    await _datasource.importDatabase(categories);
+  }
 }

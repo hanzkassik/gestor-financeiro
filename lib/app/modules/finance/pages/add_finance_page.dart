@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:gestor_financeiro/app/core/app_constants.dart';
 import 'package:gestor_financeiro/app/domain/models/category_model.dart';
-import 'package:gestor_financeiro/app/helpers/date_format_ddmmyyyy.dart';
-import 'package:gestor_financeiro/app/helpers/mask_text_date.dart';
+import 'package:gestor_financeiro/app/shared/helpers/color_from_hex.dart';
+import 'package:gestor_financeiro/app/shared/helpers/date_format_ddmmyyyy.dart';
+import 'package:gestor_financeiro/app/shared/helpers/mask_text_date.dart';
 import 'package:gestor_financeiro/app/modules/finance/controllers/add_finance_controller.dart';
+import 'package:gestor_financeiro/app/routes/app_routes.dart';
+import 'package:gestor_financeiro/app/shared/widgets/app_text_field.dart';
 import 'package:get/get.dart';
 
 class AddFinancePage extends GetView<AddFinanceController> {
@@ -17,11 +20,13 @@ class AddFinancePage extends GetView<AddFinanceController> {
         key: controller.formKey,
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.pagePadding,
+            ),
             child: Column(
               children: [
                 const SizedBox(height: 16),
-                _textField(
+                AppTextField(
                   label: 'Descrição',
                   controller: controller.descriptionController,
                   validator: (value) {
@@ -32,7 +37,7 @@ class AddFinancePage extends GetView<AddFinanceController> {
                   },
                 ),
                 const SizedBox(height: 16),
-                _textField(
+                AppTextField(
                   label: 'Valor',
                   controller: controller.valueController,
                   keyboardType: TextInputType.number,
@@ -51,71 +56,103 @@ class AddFinancePage extends GetView<AddFinanceController> {
                   },
                 ),
                 const SizedBox(height: 16),
-                Autocomplete<CategoryModel>(
-                  optionsBuilder: (TextEditingValue textEditingValue) {
-                    return controller.categories.where((
-                      CategoryModel category,
-                    ) {
-                      return category.name.toLowerCase().contains(
-                        textEditingValue.text.toLowerCase(),
-                      );
-                    }).toList();
-                  },
-                  displayStringForOption: (CategoryModel option) => option.name,
-                  onSelected: (CategoryModel selection) {
-                    controller.selectedCategory = selection;
-                  },
-                  optionsViewBuilder: (context, onSelected, options) {
-                    return Align(
-                      alignment: Alignment.topLeft,
-                      child: Material(
-                        elevation: 2,
-                        child: Container(
-                          constraints: BoxConstraints(maxHeight: 100),
-                          color: Colors.white,
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            itemCount: options.length + 1,
-                            itemBuilder: (context, index) {
-                              if (index == options.length) {
-                                return ListTile(
-                                  title: Text('Adicionar nova categoria'),
-                                  onTap: () {},
+                Obx(() {
+                  final selected = controller.selectedCategory.value;
+                  final selectedColor = selected?.color;
+                  return Autocomplete<CategoryModel>(
+                    key: ValueKey(controller.categories.length),
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      return controller.categories.where((
+                        CategoryModel category,
+                      ) {
+                        return category.name.toLowerCase().contains(
+                          textEditingValue.text.toLowerCase(),
+                        );
+                      }).toList();
+                    },
+                    displayStringForOption: (CategoryModel option) =>
+                        option.name,
+                    onSelected: (CategoryModel selection) {
+                      controller.selectedCategory.value = selection;
+                    },
+                    optionsViewBuilder: (context, onSelected, options) {
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: Material(
+                          elevation: 2,
+                          child: Container(
+                            constraints: BoxConstraints(maxHeight: 200),
+                            color: Theme.of(context).cardColor,
+                            child: ListView.builder(
+                              padding: EdgeInsets.zero,
+                              itemCount: options.length + 1,
+                              itemBuilder: (context, index) {
+                                if (index == options.length) {
+                                  return ListTile(
+                                    title: Text('Adicionar nova categoria'),
+                                    onTap: () async {
+                                      await Get.toNamed(AppRoutes.addCategory);
+                                      await controller.fetchData();
+                                    },
+                                  );
+                                }
+                                final CategoryModel option = options.elementAt(
+                                  index,
                                 );
-                              }
-                              final CategoryModel option = options.elementAt(
-                                index,
-                              );
-                              return ListTile(
-                                title: Text(option.name),
-                                onTap: () {
-                                  onSelected(option);
-                                  FocusScope.of(context).unfocus();
-                                },
-                              );
-                            },
+                                return ListTile(
+                                  title: Text(option.name),
+                                  onTap: () {
+                                    onSelected(option);
+                                    FocusScope.of(context).unfocus();
+                                  },
+                                  trailing: option.color == null
+                                      ? null
+                                      : Container(
+                                          width: 20,
+                                          height: 20,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: colorFromHex(option.color!),
+                                          ),
+                                        ),
+                                );
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                  fieldViewBuilder:
-                      (
-                        context,
-                        textEditingController,
-                        focusNode,
-                        onFieldSubmitted,
-                      ) => _textField(
-                        label: 'Categoria (opcional)',
-                        focusNode: focusNode,
-                        controller: textEditingController,
-                        validator: (value) {
-                          return null;
-                        },
-                      ),
-                ),
+                      );
+                    },
+                    fieldViewBuilder:
+                        (
+                          context,
+                          textEditingController,
+                          focusNode,
+                          onFieldSubmitted,
+                        ) => AppTextField(
+                          label: 'Categoria (opcional)',
+                          focusNode: focusNode,
+                          controller: textEditingController,
+                          onTap: () {
+                            textEditingController.clear();
+                          },
+                          suffix: selectedColor == null
+                              ? null
+                              : Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: colorFromHex(selectedColor),
+                                  ),
+                                ),
+                          validator: (value) {
+                            return null;
+                          },
+                        ),
+                  );
+                }),
                 const SizedBox(height: 16),
-                _textField(
+                AppTextField(
                   label: 'Taxa (opcional)',
                   controller: controller.taxController,
                   keyboardType: TextInputType.number,
@@ -133,7 +170,7 @@ class AddFinancePage extends GetView<AddFinanceController> {
                   },
                 ),
                 const SizedBox(height: 16),
-                _textField(
+                AppTextField(
                   label: 'Data',
                   controller: controller.dateController,
                   keyboardType: TextInputType.datetime,
@@ -166,7 +203,7 @@ class AddFinancePage extends GetView<AddFinanceController> {
                   },
                 ),
                 const SizedBox(height: 16),
-                _textField(
+                AppTextField(
                   label: 'Data de inicio (opcional)',
                   controller: controller.startDateController,
                   keyboardType: TextInputType.datetime,
@@ -199,7 +236,7 @@ class AddFinancePage extends GetView<AddFinanceController> {
                   },
                 ),
                 const SizedBox(height: 16),
-                _textField(
+                AppTextField(
                   label: 'Data de fim (opcional)',
                   controller: controller.endDateController,
                   keyboardType: TextInputType.datetime,
@@ -243,32 +280,6 @@ class AddFinancePage extends GetView<AddFinanceController> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  _textField({
-    required String label,
-    required TextEditingController controller,
-    FocusNode? focusNode,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-    Widget? suffixIcon,
-    Widget? prefix,
-    List<TextInputFormatter>? inputFormatters,
-  }) {
-    return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      keyboardType: keyboardType,
-      validator: validator,
-      inputFormatters: inputFormatters,
-      decoration: InputDecoration(
-        labelText: label,
-        prefix: prefix,
-        border: const OutlineInputBorder(),
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: suffixIcon,
       ),
     );
   }

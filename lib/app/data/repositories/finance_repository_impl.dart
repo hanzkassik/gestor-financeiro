@@ -98,4 +98,14 @@ class FinanceRepositoryImpl implements IFinanceRepository {
   Future<FinanceModel> updateFinance(FinanceModel finance) async {
     return await _datasource.updateFinance(finance);
   }
+
+  @override
+  Future<List<FinanceModel>> exportDatabase() async {
+    return await _datasource.exportDatabase();
+  }
+
+  @override
+  Future<void> importDatabase(List<FinanceModel> data) async {
+    return await _datasource.importDatabase(data);
+  }
 }

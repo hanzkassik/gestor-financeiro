@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:gestor_financeiro/app/helpers/date_format_ddmmyyyy.dart';
-import 'package:gestor_financeiro/app/helpers/date_format_mmyyyy.dart';
-import 'package:gestor_financeiro/app/helpers/format_moeda.dart';
+import 'package:gestor_financeiro/app/shared/helpers/color_from_hex.dart';
+import 'package:gestor_financeiro/app/shared/helpers/date_format_ddmmyyyy.dart';
+import 'package:gestor_financeiro/app/shared/helpers/date_format_mmyyyy.dart';
+import 'package:gestor_financeiro/app/shared/helpers/format_moeda.dart';
 import 'package:gestor_financeiro/app/modules/finance/controllers/list_finance_controller.dart';
 import 'package:gestor_financeiro/app/routes/app_routes.dart';
 import 'package:get/get.dart';
@@ -16,6 +14,23 @@ class ListFinancePage extends GetView<ListFinanceController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Lista de Finanças')),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(color: Theme.of(context).primaryColor),
+              child: Text('Menu'),
+            ),
+            ListTile(
+              title: const Text('Preferências do App'),
+              onTap: () {
+                Get.toNamed(AppRoutes.appPreferences);
+              },
+            ),
+          ],
+        ),
+      ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -49,6 +64,31 @@ class ListFinancePage extends GetView<ListFinanceController> {
           );
           return Column(
             children: [
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  children: [
+                    Switch(
+                      value: controller.calendarIsVisible.value,
+                      onChanged: (value) {
+                        controller.calendarIsVisible.toggle();
+                      },
+                      thumbIcon: WidgetStateProperty.all(
+                        Icon(
+                          controller.calendarIsVisible.value
+                              ? Icons.list
+                              : Icons.calendar_today_outlined,
+                          color: Theme.of(
+                            context,
+                          ).switchTheme.trackColor!.resolve({}),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -56,6 +96,7 @@ class ListFinancePage extends GetView<ListFinanceController> {
                   Expanded(
                     child: Material(
                       elevation: 2,
+                      color: Theme.of(context).scaffoldBackgroundColor,
                       child: Scrollbar(
                         controller: controller.scrollControllerHorizontal,
                         thumbVisibility: true,
@@ -63,6 +104,7 @@ class ListFinancePage extends GetView<ListFinanceController> {
                         child: SingleChildScrollView(
                           controller: controller.scrollControllerHorizontal,
                           scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.only(bottom: 6),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -83,13 +125,21 @@ class ListFinancePage extends GetView<ListFinanceController> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? Colors.blue.shade50
-                                        : Colors.transparent,
+                                        ? Theme.of(
+                                            context,
+                                          ).primaryColor.withValues(alpha: 0.1)
+                                        : Theme.of(
+                                            context,
+                                          ).scaffoldBackgroundColor,
                                     border: Border(
                                       bottom: BorderSide(
                                         color: isSelected
-                                            ? Colors.blue
-                                            : Colors.transparent,
+                                            ? Theme.of(
+                                                context,
+                                              ).secondaryHeaderColor
+                                            : Theme.of(
+                                                context,
+                                              ).scaffoldBackgroundColor,
                                         width: 2,
                                       ),
                                     ),
@@ -108,211 +158,226 @@ class ListFinancePage extends GetView<ListFinanceController> {
                       ),
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.more_vert),
-                    onPressed: () async {
-                      await Clipboard.setData(
-                        ClipboardData(
-                          text: json.encode(
-                            controller.finances.map((e) => e.toMap()).toList(),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
                 ],
               ),
-              Container(
-                width: 600,
-                child: Column(
-                  children: [
-                    Row(
-                      children: semana
-                          .map(
-                            (dia) => Expanded(
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 6,
-                                  ),
-                                  child: Text(
-                                    dia,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                      color: Colors.grey,
+              if (controller.calendarIsVisible.value)
+                Container(
+                  constraints: const BoxConstraints(
+                    maxWidth: 800,
+                    minWidth: 400,
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: semana
+                            .map(
+                              (dia) => Expanded(
+                                child: Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                    ),
+                                    child: Text(
+                                      dia,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall!.color,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
+                            )
+                            .toList(),
+                      ),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: dias.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 7,
+                              childAspectRatio: 1,
                             ),
-                          )
-                          .toList(),
-                    ),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: dias.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 7,
-                            childAspectRatio: 1,
-                          ),
-                      itemBuilder: (context, index) {
-                        final dia = dias[index];
+                        itemBuilder: (context, index) {
+                          final dia = dias[index];
 
-                        if (dia == null) {
-                          return const SizedBox.shrink();
-                        }
+                          if (dia == null) {
+                            return const SizedBox.shrink();
+                          }
 
-                        final dataDoDia = DateTime(data.year, data.month, dia);
+                          final dataDoDia = DateTime(
+                            data.year,
+                            data.month,
+                            dia,
+                          );
 
-                        final isHoje =
-                            DateTime.now().year == dataDoDia.year &&
-                            DateTime.now().month == dataDoDia.month &&
-                            DateTime.now().day == dataDoDia.day;
+                          final isHoje =
+                              DateTime.now().year == dataDoDia.year &&
+                              DateTime.now().month == dataDoDia.month &&
+                              DateTime.now().day == dataDoDia.day;
 
-                        return InkWell(
-                          onTap: () {},
-                          child: Container(
-                            margin: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: isHoje
-                                  ? Colors.blue.shade50
-                                  : Colors.white,
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    dia.toString(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: SingleChildScrollView(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: itens
-                                            .where(
-                                              (element) =>
-                                                  element.date.day == dia,
-                                            )
-                                            .map((e) {
-                                              return Container(
-                                                margin: const EdgeInsets.only(
-                                                  top: 2,
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Container(
-                                                        padding:
-                                                            const EdgeInsets.symmetric(
-                                                              horizontal: 4,
-                                                              vertical: 2,
-                                                            ),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors
-                                                              .green
-                                                              .shade100,
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                4,
-                                                              ),
-                                                        ),
-                                                        child: Text(
-                                                          e.description ?? '',
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 8,
-                                                                color:
-                                                                    Colors.grey,
-                                                              ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            })
-                                            .toList(),
+                          return InkWell(
+                            onTap: () {},
+                            child: Container(
+                              margin: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: isHoje
+                                    ? Theme.of(context).cardColor
+                                    : Theme.of(context).scaffoldBackgroundColor,
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      dia.toString(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: controller.fetchData,
-                  child: Scrollbar(
-                    controller: controller.scrollController,
-                    thumbVisibility: true,
-                    child: ListView.builder(
-                      controller: controller.scrollController,
-                      itemCount: itens.length,
-                      itemBuilder: (context, index) {
-                        final finance = itens[index];
-                        return Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            constraints: const BoxConstraints(
-                              maxWidth: 600,
-                              minWidth: 300,
-                            ),
-                            child: ListTile(
-                              title: Text(finance.description ?? ''),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Parcela: ${finance.installmentNumber ?? 0}/${controller.finances.fold(1, (previousValue, element) => ((element.fatherUuid != null && element.fatherUuid == finance.fatherUuid) || (finance.fatherUuid == null && element.fatherUuid == finance.uuid)) ? previousValue + 1 : previousValue)}',
-                                  ),
-                                  Text(
-                                    'Data vencimento: ${dateFormatDdmmyyyy.format(finance.date)}',
-                                  ),
-                                  if (finance.calcularAntecipacaoParcela() !=
-                                          finance.value &&
-                                      finance.calcularAntecipacaoParcela() > 0)
-                                    Text(
-                                      'Valor antecipação: ${formatMoeda.format(finance.calcularAntecipacaoParcela())}',
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: itens
+                                              .where(
+                                                (element) =>
+                                                    element.date.day == dia,
+                                              )
+                                              .map((e) {
+                                                return Container(
+                                                  margin: const EdgeInsets.only(
+                                                    top: 2,
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Container(
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 4,
+                                                                vertical: 2,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            color:
+                                                                e
+                                                                        .category
+                                                                        ?.color !=
+                                                                    null
+                                                                ? colorFromHex(
+                                                                    e
+                                                                        .category!
+                                                                        .color!,
+                                                                  )
+                                                                : Theme.of(
+                                                                    context,
+                                                                  ).primaryColor,
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  4,
+                                                                ),
+                                                          ),
+                                                          child: Text(
+                                                            e.description ?? '',
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 10,
+                                                                  color: Colors
+                                                                      .grey,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              })
+                                              .toList(),
+                                        ),
+                                      ),
                                     ),
-                                  Text(
-                                    'Valor: ${formatMoeda.format(finance.value)}',
-                                  ),
-                                ],
-                              ),
-
-                              trailing: IconButton(
-                                onPressed: () {
-                                  controller.deleteFinance(finance.uuid);
-                                },
-                                icon: Icon(Icons.delete),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              if (!controller.calendarIsVisible.value)
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: controller.fetchData,
+                    child: Scrollbar(
+                      controller: controller.scrollController,
+                      thumbVisibility: true,
+                      child: ListView.builder(
+                        controller: controller.scrollController,
+                        itemCount: itens.length,
+                        itemBuilder: (context, index) {
+                          final finance = itens[index];
+                          return Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              constraints: const BoxConstraints(
+                                maxWidth: 600,
+                                minWidth: 300,
+                              ),
+                              child: ListTile(
+                                title: Text(finance.description ?? ''),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Parcela: ${finance.installmentNumber ?? 0}/${controller.finances.fold(1, (previousValue, element) => ((element.fatherUuid != null && element.fatherUuid == finance.fatherUuid) || (finance.fatherUuid == null && element.fatherUuid == finance.uuid)) ? previousValue + 1 : previousValue)}',
+                                    ),
+                                    Text(
+                                      'Data vencimento: ${dateFormatDdmmyyyy.format(finance.date)}',
+                                    ),
+                                    if (finance.calcularAntecipacaoParcela() !=
+                                            finance.value &&
+                                        finance.calcularAntecipacaoParcela() >
+                                            0)
+                                      Text(
+                                        'Valor antecipação: ${formatMoeda.format(finance.calcularAntecipacaoParcela())}',
+                                      ),
+                                    Text(
+                                      'Valor: ${formatMoeda.format(finance.value)}',
+                                    ),
+                                  ],
+                                ),
+
+                                trailing: IconButton(
+                                  onPressed: () {
+                                    controller.deleteFinance(finance.uuid);
+                                  },
+                                  icon: Icon(Icons.delete),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
-              ),
               Text(
                 'Total: ${formatMoeda.format(itens.fold(0.0, (previousValue, element) => previousValue + element.value))}',
                 style: const TextStyle(

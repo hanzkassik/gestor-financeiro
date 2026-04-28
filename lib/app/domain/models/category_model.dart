@@ -1,13 +1,15 @@
 class CategoryModel {
   final String uuid;
   final String name;
-  final String description;
+  String? description;
+  String? color;
   final String? icon;
 
   CategoryModel({
     required this.uuid,
     required this.name,
-    required this.description,
+    this.description,
+    this.color,
     this.icon,
   });
 
@@ -16,6 +18,7 @@ class CategoryModel {
       uuid: json['uuid'],
       name: json['name'],
       description: json['description'],
+      color: json['color'],
       icon: json['icon'],
     );
   }
@@ -25,6 +28,7 @@ class CategoryModel {
       'uuid': uuid,
       'name': name,
       'description': description,
+      'color': color,
       'icon': icon,
     };
   }
@@ -33,12 +37,14 @@ class CategoryModel {
     String? uuid,
     String? name,
     String? description,
+    String? color,
     String? icon,
   }) {
     return CategoryModel(
       uuid: uuid ?? this.uuid,
       name: name ?? this.name,
       description: description ?? this.description,
+      color: color ?? this.color,
       icon: icon ?? this.icon,
     );
   }

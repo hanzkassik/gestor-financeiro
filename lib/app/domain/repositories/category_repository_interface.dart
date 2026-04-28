@@ -7,4 +7,6 @@ abstract class ICategoryRepository {
   Future<CategoryModel> createCategory(CreateCategoryModel category);
   Future<CategoryModel> updateCategory(CategoryModel category);
   Future<void> deleteCategory(String id);
+  Future<void> importDatabase(List<CategoryModel> categories);
+  Future<List<CategoryModel>> exportDatabase();
 }

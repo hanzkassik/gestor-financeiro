@@ -1,11 +1,13 @@
 class CreateCategoryModel {
   final String name;
-  final String description;
+  String? description;
+  String? color;
   final String? icon;
 
   CreateCategoryModel({
     required this.name,
-    required this.description,
+    this.description,
+    this.color,
     this.icon,
   });
 
@@ -13,11 +15,17 @@ class CreateCategoryModel {
     return CreateCategoryModel(
       name: json['name'],
       description: json['description'],
+      color: json['color'],
       icon: json['icon'],
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {'name': name, 'description': description, 'icon': icon};
+    return {
+      'name': name,
+      'description': description,
+      'color': color,
+      'icon': icon,
+    };
   }
 }

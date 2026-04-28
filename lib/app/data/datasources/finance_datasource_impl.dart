@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:gestor_financeiro/app/core/constants_datasources_keys.dart';
 import 'package:gestor_financeiro/app/domain/datasources/finance_datasource_interface.dart';
@@ -29,9 +30,11 @@ class FinanceDatasourceImpl implements IFinanceDatasource {
       ConstantsDatasourcesKeys.financesKey,
     );
     if (financesString != null) {
-      _finances = List<Map<String, dynamic>>.from(
-        json.decode(financesString),
-      ).map((e) => FinanceModel.fromMap(e)).toList();
+      _finances = await Isolate.run(
+        () => List<Map<String, dynamic>>.from(
+          json.decode(financesString),
+        ).map((e) => FinanceModel.fromMap(e)).toList(),
+      );
     }
   }
 
@@ -100,5 +103,17 @@ class FinanceDatasourceImpl implements IFinanceDatasource {
     _finances[index] = finance;
     await _saveFinances();
     return finance;
+  }
+
+  @override
+  Future<List<FinanceModel>> exportDatabase() async {
+    await _loadFinances();
+    return _finances.map((e) => e.copyWith()).toList();
+  }
+
+  @override
+  Future<void> importDatabase(List<FinanceModel> finances) async {
+    _finances = finances;
+    await _saveFinances();
   }
 }

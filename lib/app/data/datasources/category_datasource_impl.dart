@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:gestor_financeiro/app/core/constants_datasources_keys.dart';
 import 'package:gestor_financeiro/app/domain/datasources/category_datasource_interface.dart';
@@ -30,9 +31,11 @@ class CategoryDatasourceImpl implements ICategoryDatasource {
       ConstantsDatasourcesKeys.categoriesKey,
     );
     if (categoriesString != null) {
-      _categories = List<Map<String, dynamic>>.from(
-        json.decode(categoriesString),
-      ).map((e) => CategoryModel.fromMap(e)).toList();
+      _categories = await Isolate.run(
+        () => List<Map<String, dynamic>>.from(
+          json.decode(categoriesString),
+        ).map((e) => CategoryModel.fromMap(e)).toList(),
+      );
     }
   }
 
@@ -50,6 +53,7 @@ class CategoryDatasourceImpl implements ICategoryDatasource {
       uuid: _uuid.v4(),
       name: category.name,
       description: category.description,
+      color: category.color,
       icon: category.icon,
     );
 
@@ -93,5 +97,17 @@ class CategoryDatasourceImpl implements ICategoryDatasource {
     _categories[index] = category;
     await _saveCategories();
     return category;
+  }
+
+  @override
+  Future<List<CategoryModel>> exportDatabase() async {
+    await _loadCategories();
+    return _categories.map((e) => e.copyWith()).toList();
+  }
+
+  @override
+  Future<void> importDatabase(List<CategoryModel> categories) async {
+    _categories = categories;
+    await _saveCategories();
   }
 }

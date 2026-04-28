@@ -9,8 +9,11 @@ class ListFinanceController extends GetxController {
 
   final ScrollController scrollController = ScrollController();
   final ScrollController scrollControllerHorizontal = ScrollController();
+  final ScrollController scrollControllerHorizontalCalendar =
+      ScrollController();
   var finances = <FinanceModel>[].obs;
   var isLoading = false.obs;
+  final calendarIsVisible = false.obs;
   Rx<DateTime> selectedDate = DateTime.now().obs;
   var months = List.generate(21, (index) {
     final base = DateTime.now();

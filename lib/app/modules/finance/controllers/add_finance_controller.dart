@@ -3,7 +3,7 @@ import 'package:gestor_financeiro/app/domain/models/category_model.dart';
 import 'package:gestor_financeiro/app/domain/models/create_finance_model.dart';
 import 'package:gestor_financeiro/app/domain/repositories/category_repository_interface.dart';
 import 'package:gestor_financeiro/app/domain/repositories/finance_repository_interface.dart';
-import 'package:gestor_financeiro/app/helpers/date_format_ddmmyyyy.dart';
+import 'package:gestor_financeiro/app/shared/helpers/date_format_ddmmyyyy.dart';
 import 'package:get/get.dart';
 
 class AddFinanceController extends GetxController {
@@ -17,8 +17,8 @@ class AddFinanceController extends GetxController {
   final TextEditingController startDateController = TextEditingController();
   final TextEditingController endDateController = TextEditingController();
   final RxBool isLoading = false.obs;
-  List<CategoryModel> categories = [];
-  CategoryModel? selectedCategory;
+  final RxList<CategoryModel> categories = <CategoryModel>[].obs;
+  final Rx<CategoryModel?> selectedCategory = Rx<CategoryModel?>(null);
 
   AddFinanceController(this._financeRepository, this._categoryRepository);
 
@@ -32,11 +32,13 @@ class AddFinanceController extends GetxController {
   Future<void> fetchData() async {
     try {
       isLoading.value = true;
-      categories = await _categoryRepository.getCategories();
+      final fetchedCategories = await _categoryRepository.getCategories();
+      categories.assignAll(fetchedCategories);
       categories.insert(
         0,
         CategoryModel(name: 'Sem categoria', uuid: '', description: ''),
       );
+      update();
     } catch (e, stc) {
       debugPrint(e.toString());
       debugPrint(stc.toString());
@@ -65,9 +67,9 @@ class AddFinanceController extends GetxController {
         endDate: endDateController.text.isEmpty
             ? null
             : dateFormatDdmmyyyy.parse(endDateController.text),
-        categoryUuid: selectedCategory?.uuid.isEmpty == true
+        categoryUuid: selectedCategory.value?.uuid.isEmpty == true
             ? null
-            : selectedCategory?.uuid,
+            : selectedCategory.value?.uuid,
       );
       await _financeRepository.createFinance(createFinance);
       Get.back();
