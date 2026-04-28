@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gestor_financeiro/app/core/app_constants.dart';
 import 'package:gestor_financeiro/app/domain/models/category_model.dart';
-import 'package:gestor_financeiro/app/shared/helpers/color_from_hex.dart';
 import 'package:gestor_financeiro/app/shared/helpers/date_format_ddmmyyyy.dart';
 import 'package:gestor_financeiro/app/shared/helpers/mask_text_date.dart';
 import 'package:gestor_financeiro/app/modules/finance/controllers/add_finance_controller.dart';
@@ -56,101 +55,121 @@ class AddFinancePage extends GetView<AddFinanceController> {
                   },
                 ),
                 const SizedBox(height: 16),
-                Obx(() {
-                  final selected = controller.selectedCategory.value;
-                  final selectedColor = selected?.color;
-                  return Autocomplete<CategoryModel>(
-                    key: ValueKey(controller.categories.length),
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      return controller.categories.where((
-                        CategoryModel category,
-                      ) {
-                        return category.name.toLowerCase().contains(
-                          textEditingValue.text.toLowerCase(),
-                        );
-                      }).toList();
-                    },
-                    displayStringForOption: (CategoryModel option) =>
-                        option.name,
-                    onSelected: (CategoryModel selection) {
-                      controller.selectedCategory.value = selection;
-                    },
-                    optionsViewBuilder: (context, onSelected, options) {
-                      return Align(
-                        alignment: Alignment.topLeft,
-                        child: Material(
-                          elevation: 2,
-                          child: Container(
-                            constraints: BoxConstraints(maxHeight: 200),
-                            color: Theme.of(context).cardColor,
-                            child: ListView.builder(
-                              padding: EdgeInsets.zero,
-                              itemCount: options.length + 1,
-                              itemBuilder: (context, index) {
-                                if (index == options.length) {
+                GetBuilder<AddFinanceController>(
+                  builder: (controller) {
+                    final selected = controller.selectedCategory.value;
+                    final selectedColor = selected?.color;
+                    return Autocomplete<CategoryModel>(
+                      key: ValueKey(DateTime.now().millisecondsSinceEpoch),
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        return controller.categories.where((
+                          CategoryModel category,
+                        ) {
+                          return category.name.toLowerCase().contains(
+                            textEditingValue.text.toLowerCase(),
+                          );
+                        }).toList();
+                      },
+                      displayStringForOption: (CategoryModel option) =>
+                          option.name,
+                      onSelected: (CategoryModel selection) {
+                        controller.selectedCategory.value = selection;
+                      },
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Align(
+                          alignment: Alignment.topLeft,
+                          child: Material(
+                            elevation: 2,
+                            child: Container(
+                              constraints: BoxConstraints(maxHeight: 200),
+                              color: Theme.of(context).cardColor,
+                              child: ListView.builder(
+                                padding: EdgeInsets.zero,
+                                itemCount: options.length + 1,
+                                itemBuilder: (context, index) {
+                                  if (index == options.length) {
+                                    return ListTile(
+                                      title: Text('Adicionar nova categoria'),
+                                      onTap: () async {
+                                        await Get.toNamed(
+                                          AppRoutes.addCategory,
+                                        );
+                                        await controller.fetchData();
+                                      },
+                                    );
+                                  }
+                                  final CategoryModel option = options
+                                      .elementAt(index);
                                   return ListTile(
-                                    title: Text('Adicionar nova categoria'),
-                                    onTap: () async {
-                                      await Get.toNamed(AppRoutes.addCategory);
-                                      await controller.fetchData();
+                                    title: Text(option.name),
+                                    onTap: () {
+                                      onSelected(option);
+                                      FocusScope.of(context).unfocus();
                                     },
-                                  );
-                                }
-                                final CategoryModel option = options.elementAt(
-                                  index,
-                                );
-                                return ListTile(
-                                  title: Text(option.name),
-                                  onTap: () {
-                                    onSelected(option);
-                                    FocusScope.of(context).unfocus();
-                                  },
-                                  trailing: option.color == null
-                                      ? null
-                                      : Container(
-                                          width: 20,
-                                          height: 20,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: colorFromHex(option.color!),
-                                          ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          onPressed: () async {
+                                            await Get.toNamed(
+                                              AppRoutes.addCategory,
+                                              arguments: {
+                                                'categoryid': option.uuid,
+                                              },
+                                            );
+                                            await controller.fetchData();
+                                          },
+                                          icon: Icon(Icons.edit),
                                         ),
-                                );
-                              },
+                                      ],
+                                    ),
+                                    leading: option.color == null
+                                        ? null
+                                        : Container(
+                                            width: 20,
+                                            height: 20,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: option.color,
+                                            ),
+                                          ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                    fieldViewBuilder:
-                        (
-                          context,
-                          textEditingController,
-                          focusNode,
-                          onFieldSubmitted,
-                        ) => AppTextField(
-                          label: 'Categoria (opcional)',
-                          focusNode: focusNode,
-                          controller: textEditingController,
-                          onTap: () {
-                            textEditingController.clear();
-                          },
-                          suffix: selectedColor == null
-                              ? null
-                              : Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: colorFromHex(selectedColor),
+                        );
+                      },
+                      fieldViewBuilder:
+                          (
+                            context,
+                            textEditingController,
+                            focusNode,
+                            onFieldSubmitted,
+                          ) => AppTextField(
+                            label: 'Categoria (opcional)',
+                            focusNode: focusNode,
+                            controller: textEditingController,
+                            onTap: () {
+                              textEditingController.clear();
+                            },
+                            suffix: selectedColor == null
+                                ? null
+                                : Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: selectedColor,
+                                    ),
                                   ),
-                                ),
-                          validator: (value) {
-                            return null;
-                          },
-                        ),
-                  );
-                }),
+                            validator: (value) {
+                              return null;
+                            },
+                          ),
+                    );
+                  },
+                ),
                 const SizedBox(height: 16),
                 AppTextField(
                   label: 'Taxa (opcional)',

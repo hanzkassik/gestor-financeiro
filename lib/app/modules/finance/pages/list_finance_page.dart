@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gestor_financeiro/app/domain/models/finance_model.dart';
-import 'package:gestor_financeiro/app/shared/helpers/color_from_hex.dart';
 import 'package:gestor_financeiro/app/shared/helpers/date_format_ddmmyyyy.dart';
 import 'package:gestor_financeiro/app/shared/helpers/date_format_mmyyyy.dart';
 import 'package:gestor_financeiro/app/shared/helpers/format_moeda.dart';
@@ -339,9 +338,7 @@ class ListFinancePage extends GetView<ListFinanceController> {
                                                                                     color:
                                                                                         e.category?.color !=
                                                                                             null
-                                                                                        ? colorFromHex(
-                                                                                            e.category!.color!,
-                                                                                          )
+                                                                                        ? e.category!.color
                                                                                         : Theme.of(
                                                                                             context,
                                                                                           ).primaryColor,

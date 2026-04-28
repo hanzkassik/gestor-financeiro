@@ -118,17 +118,61 @@ class AddCategoryPage extends GetView<AddCategoryController> {
                   );
                 }),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    await controller.saveCategory();
+                GetBuilder<AddCategoryController>(
+                  builder: (controller) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            await controller.saveCategory();
+                          },
+                          child: const Text('Salvar'),
+                        ),
+                        if (controller.categoryModel != null)
+                          ElevatedButton(
+                            onPressed: () async {
+                              final result =
+                                  await _showPopupConfirmationDelete();
+                              if (result == true) {
+                                await controller.deleteCategory();
+                                Get.back();
+                              }
+                            },
+                            child: const Text('Deletar'),
+                          ),
+                      ],
+                    );
                   },
-                  child: const Text('Salvar'),
                 ),
                 const SizedBox(height: 16),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Future<bool?> _showPopupConfirmationDelete() async {
+    return await Get.dialog(
+      AlertDialog(
+        title: const Text('Confirmação'),
+        content: const Text('Tem certeza que deseja deletar esta categoria?'),
+        actions: [
+          ElevatedButton(
+            child: const Text('Cancelar'),
+            onPressed: () {
+              Get.back(result: false);
+            },
+          ),
+          ElevatedButton(
+            child: const Text('Deletar'),
+            onPressed: () {
+              Get.back(result: true);
+            },
+          ),
+        ],
       ),
     );
   }

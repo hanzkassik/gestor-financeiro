@@ -17,6 +17,7 @@ class MyApp extends StatelessWidget {
       builder: (context, _) {
         return GetMaterialApp(
           title: 'Gestor Financeiro',
+          debugShowCheckedModeBanner: false,
           theme: AppPreferencesService.instance.lightTheme.value,
           darkTheme: AppPreferencesService.instance.darkTheme.value,
           themeMode: AppPreferencesService.instance.themeMode.value,
