@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gestor_financeiro/app/domain/models/finance_model.dart';
 import 'package:gestor_financeiro/app/shared/helpers/color_from_hex.dart';
 import 'package:gestor_financeiro/app/shared/helpers/date_format_ddmmyyyy.dart';
 import 'package:gestor_financeiro/app/shared/helpers/date_format_mmyyyy.dart';
@@ -341,6 +342,9 @@ class ListFinancePage extends GetView<ListFinanceController> {
                                 minWidth: 300,
                               ),
                               child: ListTile(
+                                onTap: () {
+                                  _showPopUpFinanceDetails(finance);
+                                },
                                 title: Text(finance.description ?? ''),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,6 +416,111 @@ class ListFinancePage extends GetView<ListFinanceController> {
         },
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  _showPopUpFinanceDetails(FinanceModel finance) {
+    final fatherFinance = controller.finances.firstWhereOrNull(
+      (element) =>
+          finance.fatherUuid == element.uuid ||
+          (finance.fatherUuid == null && element.uuid == finance.uuid),
+    );
+    final childrenFinances = controller.finances
+        .where(
+          (element) =>
+              element.uuid == fatherFinance?.uuid ||
+              element.fatherUuid == fatherFinance?.uuid,
+        )
+        .toList();
+    showDialog(
+      context: Get.context!,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Detalhes da Finança'),
+          content: Container(
+            constraints: BoxConstraints(maxWidth: 600, minWidth: 300),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Descrição: ${finance.description}'),
+                  Text(
+                    'Data de Vencimento: ${dateFormatDdmmyyyy.format(finance.date)}',
+                  ),
+                  Text(
+                    'Parcela: ${finance.installmentNumber ?? 0}/${controller.finances.fold(1, (previousValue, element) => ((element.fatherUuid != null && element.fatherUuid == finance.fatherUuid) || (finance.fatherUuid == null && element.fatherUuid == finance.uuid)) ? previousValue + 1 : previousValue)}',
+                  ),
+                  Text('Valor parcela: ${formatMoeda.format(finance.value)}'),
+                  Text(
+                    'Valor antecipação parcela: ${formatMoeda.format(finance.calcularAntecipacaoParcela())}',
+                  ),
+                  Text(
+                    'Valor total: ${formatMoeda.format(childrenFinances.fold(0.0, (previousValue, element) => previousValue + element.value))}',
+                  ),
+                  Text(
+                    'Valor total pagamento antecipado: ${formatMoeda.format(childrenFinances.fold(0.0, (previousValue, element) => previousValue + element.calcularAntecipacaoParcela()))}',
+                  ),
+                  Text('Categoria: ${finance.category ?? ''}'),
+                  if (childrenFinances.isNotEmpty)
+                    const Text(
+                      'Parcelas:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  if (childrenFinances.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: childrenFinances
+                          .map(
+                            (e) => ListTile(
+                              title: Text(e.description ?? ''),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Parcela: ${e.installmentNumber ?? 0}/${controller.finances.fold(1, (previousValue, element) => ((element.fatherUuid != null && element.fatherUuid == e.fatherUuid) || (e.fatherUuid == null && element.fatherUuid == e.uuid)) ? previousValue + 1 : previousValue)}',
+                                  ),
+                                  Text(
+                                    'Data vencimento: ${dateFormatDdmmyyyy.format(e.date)}',
+                                  ),
+                                  if (e.calcularAntecipacaoParcela() !=
+                                          e.value &&
+                                      e.calcularAntecipacaoParcela() > 0)
+                                    Text(
+                                      'Valor antecipação: ${formatMoeda.format(e.calcularAntecipacaoParcela())}',
+                                    ),
+                                  Text('Valor: ${formatMoeda.format(e.value)}'),
+                                ],
+                              ),
+
+                              trailing: IconButton(
+                                onPressed: () {
+                                  controller.deleteFinance(e.uuid);
+                                },
+                                icon: Icon(Icons.delete),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Fechar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
