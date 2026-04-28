@@ -261,7 +261,11 @@ class ListFinancePage extends GetView<ListFinanceController> {
                                                           dataDoDia.day;
 
                                                   return InkWell(
-                                                    onTap: () {},
+                                                    onTap: () {
+                                                      _showPopUpDetailDay(
+                                                        dataDoDia,
+                                                      );
+                                                    },
                                                     child: Container(
                                                       margin:
                                                           const EdgeInsets.all(
@@ -576,6 +580,59 @@ class ListFinancePage extends GetView<ListFinanceController> {
                 ],
               ),
             ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Fechar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  _showPopUpDetailDay(DateTime date) {
+    final financesDay = controller.finances
+        .where(
+          (finance) =>
+              finance.date.day == date.day &&
+              finance.date.month == date.month &&
+              finance.date.year == date.year,
+        )
+        .toList();
+    financesDay.sort(
+      (a, b) => (a.description ?? '').compareTo(b.description ?? ''),
+    );
+    showDialog(
+      context: Get.context!,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Finanças do dia ${dateFormatDdmmyyyy.format(date)}'),
+          content: Builder(
+            builder: (context) {
+              if (financesDay.isEmpty) {
+                return const Text('Nenhuma finança para este dia');
+              }
+              return Container(
+                constraints: BoxConstraints(maxWidth: 600, minWidth: 300),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: financesDay.map((finance) {
+                      return ListTile(
+                        title: Text(finance.description ?? ''),
+                        subtitle: Text(
+                          'Valor: ${formatMoeda.format(finance.value)}',
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              );
+            },
           ),
           actions: [
             TextButton(
