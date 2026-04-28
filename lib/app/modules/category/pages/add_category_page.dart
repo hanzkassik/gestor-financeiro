@@ -123,12 +123,6 @@ class AddCategoryPage extends GetView<AddCategoryController> {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            await controller.saveCategory();
-                          },
-                          child: const Text('Salvar'),
-                        ),
                         if (controller.categoryModel != null)
                           ElevatedButton(
                             onPressed: () async {
@@ -141,6 +135,12 @@ class AddCategoryPage extends GetView<AddCategoryController> {
                             },
                             child: const Text('Deletar'),
                           ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            await controller.saveCategory();
+                          },
+                          child: const Text('Salvar'),
+                        ),
                       ],
                     );
                   },

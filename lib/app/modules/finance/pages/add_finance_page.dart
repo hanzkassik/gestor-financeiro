@@ -60,6 +60,9 @@ class AddFinancePage extends GetView<AddFinanceController> {
                     final selected = controller.selectedCategory.value;
                     final selectedColor = selected?.color;
                     return Autocomplete<CategoryModel>(
+                      initialValue: TextEditingValue(
+                        text: selected?.name ?? '',
+                      ),
                       key: ValueKey(DateTime.now().millisecondsSinceEpoch),
                       optionsBuilder: (TextEditingValue textEditingValue) {
                         return controller.categories.where((
@@ -74,6 +77,7 @@ class AddFinancePage extends GetView<AddFinanceController> {
                           option.name,
                       onSelected: (CategoryModel selection) {
                         controller.selectedCategory.value = selection;
+                        controller.update();
                       },
                       optionsViewBuilder: (context, onSelected, options) {
                         return Align(
@@ -94,7 +98,7 @@ class AddFinancePage extends GetView<AddFinanceController> {
                                         await Get.toNamed(
                                           AppRoutes.addCategory,
                                         );
-                                        await controller.fetchData();
+                                        await controller.fetchCategories();
                                       },
                                     );
                                   }
@@ -117,7 +121,7 @@ class AddFinancePage extends GetView<AddFinanceController> {
                                                 'categoryid': option.uuid,
                                               },
                                             );
-                                            await controller.fetchData();
+                                            await controller.fetchCategories();
                                           },
                                           icon: Icon(Icons.edit),
                                         ),

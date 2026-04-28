@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:gestor_financeiro/app/domain/models/category_model.dart';
 import 'package:gestor_financeiro/app/domain/models/create_finance_model.dart';
+import 'package:gestor_financeiro/app/domain/models/finance_model.dart';
 import 'package:gestor_financeiro/app/domain/repositories/category_repository_interface.dart';
 import 'package:gestor_financeiro/app/domain/repositories/finance_repository_interface.dart';
 import 'package:gestor_financeiro/app/shared/helpers/date_format_ddmmyyyy.dart';
@@ -16,9 +17,12 @@ class AddFinanceController extends GetxController {
   final TextEditingController dateController = TextEditingController();
   final TextEditingController startDateController = TextEditingController();
   final TextEditingController endDateController = TextEditingController();
+  final TextEditingController categoryController = TextEditingController();
+  final FocusNode categoryFocusNode = FocusNode();
   final RxBool isLoading = false.obs;
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final Rx<CategoryModel?> selectedCategory = Rx<CategoryModel?>(null);
+  FinanceModel? financeModel;
 
   AddFinanceController(this._financeRepository, this._categoryRepository);
 
@@ -26,10 +30,48 @@ class AddFinanceController extends GetxController {
   void onInit() {
     super.onInit();
     dateController.text = dateFormatDdmmyyyy.format(DateTime.now());
-    fetchData();
+    fetchCategories();
+    fetchFinance();
   }
 
-  Future<void> fetchData() async {
+  Future<void> fetchFinance() async {
+    try {
+      isLoading.value = true;
+      if (Get.arguments != null &&
+          Get.arguments is Map<String, dynamic> &&
+          Get.arguments['financeid'] != null) {
+        final financeId = Get.arguments['financeid'] as String;
+        financeModel = await _financeRepository.getFinanceById(financeId);
+        if (financeModel != null) {
+          descriptionController.text = financeModel!.description ?? '';
+          valueController.text = financeModel!.value.toString().replaceAll(
+            '.',
+            ',',
+          );
+          taxController.text =
+              financeModel!.tax?.toString().replaceAll('.', ',') ?? '';
+          dateController.text = dateFormatDdmmyyyy.format(financeModel!.date);
+          startDateController.text = financeModel!.startDate != null
+              ? dateFormatDdmmyyyy.format(financeModel!.startDate!)
+              : '';
+          endDateController.text = financeModel!.endDate != null
+              ? dateFormatDdmmyyyy.format(financeModel!.endDate!)
+              : '';
+          selectedCategory.value = financeModel!.category;
+          categoryController.text = financeModel!.category?.name ?? '';
+          update();
+        }
+      }
+    } catch (e, stc) {
+      debugPrint(e.toString());
+      debugPrint(stc.toString());
+      Get.snackbar('Erro', 'Falha ao carregar finança: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchCategories() async {
     try {
       isLoading.value = true;
       final fetchedCategories = await _categoryRepository.getCategories();
@@ -54,24 +96,45 @@ class AddFinanceController extends GetxController {
         return;
       }
       isLoading.value = true;
-      final createFinance = CreateFinanceModel(
-        value: double.parse(valueController.text.replaceAll(',', '.')),
-        date: dateFormatDdmmyyyy.parse(dateController.text),
-        description: descriptionController.text,
-        tax: taxController.text.isEmpty
-            ? null
-            : double.parse(taxController.text.replaceAll(',', '.')),
-        startDate: startDateController.text.isEmpty
-            ? null
-            : dateFormatDdmmyyyy.parse(startDateController.text),
-        endDate: endDateController.text.isEmpty
-            ? null
-            : dateFormatDdmmyyyy.parse(endDateController.text),
-        categoryUuid: selectedCategory.value?.uuid.isEmpty == true
-            ? null
-            : selectedCategory.value?.uuid,
-      );
-      await _financeRepository.createFinance(createFinance);
+      if (financeModel == null) {
+        final createFinance = CreateFinanceModel(
+          value: double.parse(valueController.text.replaceAll(',', '.')),
+          date: dateFormatDdmmyyyy.parse(dateController.text),
+          description: descriptionController.text,
+          tax: taxController.text.isEmpty
+              ? null
+              : double.parse(taxController.text.replaceAll(',', '.')),
+          startDate: startDateController.text.isEmpty
+              ? null
+              : dateFormatDdmmyyyy.parse(startDateController.text),
+          endDate: endDateController.text.isEmpty
+              ? null
+              : dateFormatDdmmyyyy.parse(endDateController.text),
+          categoryUuid: selectedCategory.value?.uuid.isEmpty == true
+              ? null
+              : selectedCategory.value?.uuid,
+        );
+        await _financeRepository.createFinance(createFinance);
+      } else {
+        final updatedFinance = financeModel!.copyWith(
+          value: double.parse(valueController.text.replaceAll(',', '.')),
+          date: dateFormatDdmmyyyy.parse(dateController.text),
+          description: descriptionController.text,
+          tax: taxController.text.isEmpty
+              ? null
+              : double.parse(taxController.text.replaceAll(',', '.')),
+          startDate: startDateController.text.isEmpty
+              ? null
+              : dateFormatDdmmyyyy.parse(startDateController.text),
+          endDate: endDateController.text.isEmpty
+              ? null
+              : dateFormatDdmmyyyy.parse(endDateController.text),
+          categoryUuid: selectedCategory.value?.uuid.isEmpty == true
+              ? null
+              : selectedCategory.value?.uuid,
+        );
+        await _financeRepository.updateFinance(updatedFinance);
+      }
       Get.back();
       Get.snackbar('Sucesso', 'Finança salva com sucesso!');
     } catch (e, stc) {

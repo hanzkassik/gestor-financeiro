@@ -436,10 +436,14 @@ class ListFinancePage extends GetView<ListFinanceController> {
                                 ),
 
                                 trailing: IconButton(
-                                  onPressed: () {
-                                    controller.deleteFinance(finance.uuid);
+                                  onPressed: () async {
+                                    await Get.toNamed(
+                                      AppRoutes.addFinance,
+                                      arguments: {'financeid': finance.uuid},
+                                    );
+                                    await controller.fetchData();
                                   },
-                                  icon: Icon(Icons.delete),
+                                  icon: Icon(Icons.edit),
                                 ),
                               ),
                             ),
@@ -529,7 +533,7 @@ class ListFinancePage extends GetView<ListFinanceController> {
                   Text(
                     'Valor total pagamento antecipado: ${formatMoeda.format(childrenFinances.fold(0.0, (previousValue, element) => previousValue + element.calcularAntecipacaoParcela()))}',
                   ),
-                  Text('Categoria: ${finance.category ?? ''}'),
+                  Text('Categoria: ${finance.category?.name ?? ''}'),
                   if (childrenFinances.isNotEmpty)
                     const Text(
                       'Parcelas:',
