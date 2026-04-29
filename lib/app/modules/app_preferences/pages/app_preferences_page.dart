@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:gestor_financeiro/app/core/app_constants.dart';
+import 'package:gestor_financeiro/app/core/enums/export_database_type.dart';
 import 'package:gestor_financeiro/app/shared/helpers/is_color.dart';
 import 'package:gestor_financeiro/app/shared/widgets/app_text_field.dart';
 import 'package:get/get.dart';
@@ -118,7 +119,7 @@ class AppPreferencesPage extends GetView<AppPreferencesController> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      controller.exportarDatabase();
+                      _showPopupExportDatabaseType();
                     },
                     child: const Text('Exportar database'),
                   ),
@@ -134,6 +135,40 @@ class AppPreferencesPage extends GetView<AppPreferencesController> {
           ),
         );
       }),
+    );
+  }
+
+  _showPopupExportDatabaseType() {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Exportar database'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('CSV'),
+              onTap: () {
+                controller.exportarDatabase(ExportDatabaseType.csv);
+                Get.back();
+              },
+            ),
+            ListTile(
+              title: const Text('JSON'),
+              onTap: () {
+                controller.exportarDatabase(ExportDatabaseType.json);
+                Get.back();
+              },
+            ),
+            ListTile(
+              title: const Text('Copiar para área de transferência'),
+              onTap: () {
+                controller.exportarDatabase(ExportDatabaseType.copy);
+                Get.back();
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
