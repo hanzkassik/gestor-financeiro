@@ -292,17 +292,99 @@ class AddFinancePage extends GetView<AddFinanceController> {
                   },
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () async {
-                    await controller.saveFinance();
-                  },
-                  child: const Text('Salvar'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    if (controller.financeModel != null)
+                      ElevatedButton(
+                        onPressed: () async {
+                          final response = await _showPopupConfirmationDelete();
+                          if (response == true) {
+                            // await controller.deleteFinance();
+                          }
+                        },
+                        child: const Text('Deletar'),
+                      ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          final parentFinances = await controller
+                              .getChildrenFinances();
+                          bool? saveCategory = false;
+                          if (parentFinances.isNotEmpty &&
+                              controller.selectedCategory.value !=
+                                  controller.financeModel?.category) {
+                            saveCategory =
+                                await _showPopupEditChildrenFinances();
+                          }
+                          await controller.saveFinance(
+                            saveCategoryParents: saveCategory,
+                          );
+                          Get.back();
+                        } catch (e, stc) {
+                          debugPrint(e.toString());
+                          debugPrint(stc.toString());
+                          Get.snackbar('Erro', 'Falha ao salvar finança: $e');
+                        }
+                      },
+                      child: const Text('Salvar'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  _showPopupConfirmationDelete() {
+    return Get.dialog(
+      AlertDialog(
+        title: const Text('Confirmação'),
+        content: const Text('Tem certeza que deseja deletar esta finança?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back(result: false);
+            },
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back(result: true);
+            },
+            child: const Text('Deletar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool?> _showPopupEditChildrenFinances() async {
+    return await Get.dialog(
+      AlertDialog(
+        title: const Text('Parcelas'),
+        content: Container(
+          width: double.maxFinite,
+          child: Text('Deseja replicar categoria para as parcelas vinculadas?'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back(result: false);
+            },
+            child: const Text('Nao'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back(result: true);
+            },
+            child: const Text('Sim'),
+          ),
+        ],
       ),
     );
   }

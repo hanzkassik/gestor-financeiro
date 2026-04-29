@@ -90,7 +90,23 @@ class AddFinanceController extends GetxController {
     }
   }
 
-  Future<void> saveFinance() async {
+  Future<List<FinanceModel>> getChildrenFinances() async {
+    if (financeModel == null) return [];
+    try {
+      isLoading.value = true;
+      final childrenFinances = await _financeRepository.getFinancesByParentId(
+        financeModel!.uuid,
+      );
+      return childrenFinances;
+    } catch (e) {
+      Get.snackbar('Erro', 'Falha ao carregar parcelas vinculadas');
+      return [];
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> saveFinance({bool? saveCategoryParents = false}) async {
     try {
       if (!formKey.currentState!.validate()) {
         return;
@@ -134,6 +150,15 @@ class AddFinanceController extends GetxController {
               : selectedCategory.value?.uuid,
         );
         await _financeRepository.updateFinance(updatedFinance);
+        if (saveCategoryParents == true) {
+          final childrenFinances = await getChildrenFinances();
+          for (var child in childrenFinances) {
+            final updatedChild = child.copyWith(
+              categoryUuid: updatedFinance.categoryUuid,
+            );
+            await _financeRepository.updateFinance(updatedChild);
+          }
+        }
       }
       Get.back();
       Get.snackbar('Sucesso', 'Finança salva com sucesso!');
@@ -141,6 +166,18 @@ class AddFinanceController extends GetxController {
       debugPrint(e.toString());
       debugPrint(stc.toString());
       Get.snackbar('Erro', 'Falha ao salvar finança: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> deleteFinance(String uuid) async {
+    try {
+      isLoading.value = true;
+      await _financeRepository.deleteFinance(uuid);
+      Get.snackbar('Sucesso', 'Finança deletada com sucesso');
+    } catch (e) {
+      Get.snackbar('Erro', 'Não foi possível deletar a finança');
     } finally {
       isLoading.value = false;
     }

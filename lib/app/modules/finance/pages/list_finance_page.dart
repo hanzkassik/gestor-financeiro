@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gestor_financeiro/app/domain/models/finance_model.dart';
 import 'package:gestor_financeiro/app/shared/helpers/date_format_ddmmyyyy.dart';
-import 'package:gestor_financeiro/app/shared/helpers/date_format_mmyyyy.dart';
 import 'package:gestor_financeiro/app/shared/helpers/format_moeda.dart';
 import 'package:gestor_financeiro/app/modules/finance/controllers/list_finance_controller.dart';
 import 'package:gestor_financeiro/app/routes/app_routes.dart';
+import 'package:gestor_financeiro/app/shared/widgets/select_date_appbar.dart';
 import 'package:get/get.dart';
 
 class ListFinancePage extends GetView<ListFinanceController> {
@@ -13,7 +13,14 @@ class ListFinancePage extends GetView<ListFinanceController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lista de Finanças')),
+      appBar: AppBar(
+        title: const Text('Lista de Finanças'),
+        bottom: SelectDateAppbar(
+          months: controller.months,
+          onChangeSelectedDate: (date) => controller.selectedDate.value = date,
+          selectedDate: controller.selectedDate,
+        ),
+      ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -89,77 +96,77 @@ class ListFinancePage extends GetView<ListFinanceController> {
                 ),
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Material(
-                      elevation: 2,
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      child: Scrollbar(
-                        controller: controller.dateHorizontalScrollController,
-                        thumbVisibility: true,
-                        thickness: 2,
-                        child: SingleChildScrollView(
-                          controller: controller.dateHorizontalScrollController,
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: controller.months.map<Widget>((data) {
-                              bool isSelected =
-                                  data.year ==
-                                      controller.selectedDate.value.year &&
-                                  data.month ==
-                                      controller.selectedDate.value.month;
-                              return InkWell(
-                                onTap: () {
-                                  controller.onChangeSelectedDate(data);
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Theme.of(
-                                            context,
-                                          ).primaryColor.withValues(alpha: 0.1)
-                                        : Theme.of(
-                                            context,
-                                          ).scaffoldBackgroundColor,
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: isSelected
-                                            ? Theme.of(
-                                                context,
-                                              ).secondaryHeaderColor
-                                            : Theme.of(
-                                                context,
-                                              ).scaffoldBackgroundColor,
-                                        width: 2,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    dateFormatMmyyyy.format(data),
-                                    key:
-                                        controller.monthKeys[controller.months
-                                            .indexOf(data)],
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   crossAxisAlignment: CrossAxisAlignment.center,
+              //   children: [
+              //     Expanded(
+              //       child: Material(
+              //         elevation: 2,
+              //         color: Theme.of(context).scaffoldBackgroundColor,
+              //         child: Scrollbar(
+              //           controller: controller.dateHorizontalScrollController,
+              //           thumbVisibility: true,
+              //           thickness: 2,
+              //           child: SingleChildScrollView(
+              //             controller: controller.dateHorizontalScrollController,
+              //             scrollDirection: Axis.horizontal,
+              //             padding: const EdgeInsets.only(bottom: 6),
+              //             child: Row(
+              //               crossAxisAlignment: CrossAxisAlignment.center,
+              //               mainAxisAlignment: MainAxisAlignment.center,
+              //               children: controller.months.map<Widget>((data) {
+              //                 bool isSelected =
+              //                     data.year ==
+              //                         controller.selectedDate.value.year &&
+              //                     data.month ==
+              //                         controller.selectedDate.value.month;
+              //                 return InkWell(
+              //                   onTap: () {
+              //                     controller.onChangeSelectedDate(data);
+              //                   },
+              //                   child: Container(
+              //                     padding: const EdgeInsets.symmetric(
+              //                       horizontal: 12,
+              //                       vertical: 8,
+              //                     ),
+              //                     decoration: BoxDecoration(
+              //                       color: isSelected
+              //                           ? Theme.of(
+              //                               context,
+              //                             ).primaryColor.withValues(alpha: 0.1)
+              //                           : Theme.of(
+              //                               context,
+              //                             ).scaffoldBackgroundColor,
+              //                       border: Border(
+              //                         bottom: BorderSide(
+              //                           color: isSelected
+              //                               ? Theme.of(
+              //                                   context,
+              //                                 ).secondaryHeaderColor
+              //                               : Theme.of(
+              //                                   context,
+              //                                 ).scaffoldBackgroundColor,
+              //                           width: 2,
+              //                         ),
+              //                       ),
+              //                     ),
+              //                     child: Text(
+              //                       dateFormatMmyyyy.format(data),
+              //                       key:
+              //                           controller.monthKeys[controller.months
+              //                               .indexOf(data)],
+              //                     ),
+              //                   ),
+              //                 );
+              //               }).toList(),
+              //             ),
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
               if (controller.calendarIsVisible.value)
                 Expanded(
                   child: Scrollbar(
@@ -190,7 +197,7 @@ class ListFinancePage extends GetView<ListFinanceController> {
                                           : MediaQuery.of(context).size.width,
                                       minWidth: 300,
                                       minHeight: 200,
-                                      maxHeight: 700,
+                                      maxHeight: 900,
                                     ),
                                     padding: const EdgeInsets.all(8),
                                     child: Row(
@@ -432,6 +439,28 @@ class ListFinancePage extends GetView<ListFinanceController> {
                                     Text(
                                       'Valor: ${formatMoeda.format(finance.value)}',
                                     ),
+                                    if (finance.category != null)
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Categoria: ${finance.category?.name ?? ''}',
+                                          ),
+                                          const SizedBox(width: 4),
+                                          if (finance.category!.color != null)
+                                            Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: finance.category!.color!,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                   ],
                                 ),
 

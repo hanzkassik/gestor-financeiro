@@ -5,6 +5,7 @@ import 'package:gestor_financeiro/app/core/constants_datasources_keys.dart';
 import 'package:gestor_financeiro/app/domain/datasources/finance_datasource_interface.dart';
 import 'package:gestor_financeiro/app/domain/models/create_finance_model.dart';
 import 'package:gestor_financeiro/app/domain/models/finance_model.dart';
+import 'package:get/get_utils/get_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -88,6 +89,23 @@ class FinanceDatasourceImpl implements IFinanceDatasource {
   @override
   Future<List<FinanceModel>> getFinances() async {
     return List<FinanceModel>.unmodifiable(_finances);
+  }
+
+  @override
+  Future<List<FinanceModel>> getFinancesByParentId(String id) async {
+    final finance = _finances.firstWhereOrNull((element) => element.uuid == id);
+    final fatherFinance = _finances.firstWhereOrNull(
+      (element) => element.uuid == (finance?.fatherUuid ?? id),
+    );
+    final financesByParentId = _finances
+        .where(
+          (element) =>
+              element.fatherUuid == fatherFinance?.uuid ||
+              (element.uuid == fatherFinance?.uuid &&
+                  element.fatherUuid == null),
+        )
+        .toList();
+    return financesByParentId.map((e) => e.copyWith()).toList();
   }
 
   @override

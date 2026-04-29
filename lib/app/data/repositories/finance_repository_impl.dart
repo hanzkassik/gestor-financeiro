@@ -108,4 +108,9 @@ class FinanceRepositoryImpl implements IFinanceRepository {
   Future<void> importDatabase(List<FinanceModel> data) async {
     return await _datasource.importDatabase(data);
   }
+
+  @override
+  Future<List<FinanceModel>> getFinancesByParentId(String id) {
+    return _datasource.getFinancesByParentId(id);
+  }
 }

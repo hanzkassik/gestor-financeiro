@@ -8,7 +8,6 @@ class ListFinanceController extends GetxController {
   late final IFinanceRepository _financeRepository;
 
   final ScrollController listTileScrollController = ScrollController();
-  final ScrollController dateHorizontalScrollController = ScrollController();
   final ScrollController calendarHorizontalScrollController =
       ScrollController();
   final ScrollController calendarVerticalScrollController = ScrollController();
@@ -23,7 +22,6 @@ class ListFinanceController extends GetxController {
     final data = DateTime(base.year, base.month + offset);
     return data;
   }).obs;
-  var monthKeys = List.generate(21, (_) => GlobalKey());
   ListFinanceController();
 
   @override
@@ -33,25 +31,8 @@ class ListFinanceController extends GetxController {
     fetchData();
   }
 
-  @override
-  void onReady() {
-    super.onReady();
-    dateHorizontalScrollController.jumpTo(
-      dateHorizontalScrollController.position.maxScrollExtent / 2,
-    );
-  }
-
   Future<void> onChangeSelectedDate(DateTime date) async {
     selectedDate.value = date;
-    final index = months.indexOf(date);
-    final context = monthKeys[index].currentContext;
-    if (context == null) return;
-    await Scrollable.ensureVisible(
-      context,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      alignment: 0.5,
-    );
   }
 
   Future<void> fetchData() async {
@@ -83,7 +64,6 @@ class ListFinanceController extends GetxController {
       final data = DateTime(base.year, base.month + offset);
       return data;
     });
-    monthKeys = List.generate(qtdMeses, (_) => GlobalKey());
   }
 
   Future<void> deleteFinance(String uuid) async {
